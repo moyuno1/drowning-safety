@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>生命之渊 · 溺水安全舆情洞察与水域警示</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <style>
+        :root {
+            --deep-abyss: #0a0f1a;
+            --ocean-dark: #0d2137;
+            --coral-alert: #ff5e5b;
+            --amber-warn: #f4a261;
+            --sunset-glow: #e76f51;
+            --teal-safe: #2a9d8f;
+            --purple-insight: #6c5ce7;
+            --gold-accent: #f0c27a;
+            --surface-light: #f8f9fa;
+            --text-primary: #1a1a2e;
+            --text-soft: #4a5568;
+            --card-glass: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.14);
+            --gradient-1: linear-gradient(135deg, #0d2137 0%, #1a3a5c 30%, #0f2847 60%, #071a2e 100%);
+            --gradient-2: linear-gradient(160deg, #ff5e5b 0%, #e76f51 40%, #f4a261 100%);
+            --gradient-3: linear-gradient(135deg, #6c5ce7 0%, #a78bfa 50%, #c4b5fd 100%);
+            --gradient-4: linear-gradient(145deg, #2a9d8f 0%, #48cae4 50%, #00b4d8 100%);
+            --shadow-glow: 0 0 40px rgba(255, 94, 91, 0.25);
+            --shadow-card: 0 8px 40px rgba(0, 0, 0, 0.3);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
+            --font-display: 'Georgia', 'Noto Serif SC', 'STSong', serif;
+            --font-body: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: #e76f51 #0d2137;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d2137;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #ff5e5b, #f4a261);
+            border-radius: 3px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: radial-gradient(circle at 30% 20%, #2a4469 0%, #10223f 65%, #18253f 100%);
+            background-attachment: fixed;
+            color: #e0e6ed;
+            overflow-x: hidden;
+            line-height: 1.7;
+            cursor: default;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle at 70% 20%, rgba(255, 94, 91, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 30% 70%, rgba(108, 92, 231, 0.09) 0%, transparent 45%),
+                radial-gradient(circle at 80% 80%, rgba(42, 157, 143, 0.07) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: slowShift 18s ease-in-out infinite alternate;
+        }
+        @keyframes slowShift {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+            100% {
+                transform: scale(1.1) rotate(1deg);
+            }
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.5;
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+
+        .cursor-glow {
+            display: none;
+        }
+
+        .main-wrapper {
+            position: relative;
+            z-index: 4;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .top-nav {
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            background: rgba(13, 33, 55, 0.8);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 40px;
+            padding: 10px 18px;
+            margin: 10px auto;
+            max-width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            transition: all 0.4s var(--transition-smooth);
+            gap: 6px;
+        }
+        .top-nav:hover {
+            border-color: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 12px 44px rgba(0, 0, 0, 0.45);
+        }
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style: none;
+        }
+        .nav-links a {
+            color: #c8d6e5;
+            text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 94, 91, 0.2);
+        }
+        .nav-links a.nav-cta {
+            background: var(--gradient-2);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 18px rgba(255, 94, 91, 0.3);
+            padding: 6px 14px;
+        }
+        .nav-links a.nav-cta:hover {
+            box-shadow: 0 6px 28px rgba(255, 94, 91, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .hero-section {
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 40px 12px 30px;
+            position: relative;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 94, 91, 0.15);
+            border: 1px solid rgba(255, 94, 91, 0.3);
+            color: #ff8c8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            margin-bottom: 20px;
+            animation: pulseBadge 2.6s ease-in-out infinite;
+        }
+        @keyframes pulseBadge {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 94, 91, 0.35);
+            }
+            50% {
+                box-shadow: 0 0 0 16px rgba(255, 94, 91, 0);
+            }
+        }
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 8vw, 3.6rem);
+            font-weight: 900;
+            line-height: 1.15;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, #ffffff 0%, #d0dce8 40%, #f4a261 70%, #ff5e5b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 14px;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+            color: #a0b4c8;
+            max-width: 100%;
+            padding: 0 10px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .hero-stats-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .hero-stat {
+            text-align: center;
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            backdrop-filter: blur(12px);
+            min-width: 80px;
+            flex: 1 0 auto;
+            max-width: 140px;
+            transition: all 0.4s;
+        }
+        .hero-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glow);
+            border-color: rgba(255, 94, 91, 0.5);
+        }
+        .hero-stat-num {
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+        .hero-stat-label {
+            font-size: 0.7rem;
+            color: #8899aa;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .section-block {
+            margin: 30px 0;
+            padding: 20px 0;
+            position: relative;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: #f4a261;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 5vw, 2.2rem);
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .section-desc {
+            max-width: 100%;
+            margin: 0 auto 12px;
+            color: #a0b8d0;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            padding: 0 12px;
+        }
+        .section-divider {
+            width: 40px;
+            height: 3px;
+            background: var(--gradient-2);
+            border-radius: 2px;
+            margin: 10px auto;
+        }
+
+        .glass-card {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 20px;
+            transition: all 0.4s var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: var(--shadow-card);
+            transform: translateY(-3px);
+        }
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+            pointer-events: none;
+            transition: opacity 0.5s;
+            opacity: 0;
+        }
+        .glass-card:hover::after {
+            opacity: 1;
+        }
+
+        /* ===== 海报样式 ===== */
+        .poster-slot {
+            width: 100%;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s var(--transition-smooth);
+            box-shadow: 0 12px 48px rgba(255, 94, 91, 0.2);
+            margin: 16px 0;
+            background: var(--gradient-2);
+            background-size: cover;
+            background-position: center;
+        }
+        .poster-slot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.35);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .poster-slot:hover {
+            transform: scale(1.01);
+            box-shadow: 0 20px 60px rgba(255, 94, 91, 0.35);
+        }
+        .poster-slot .poster-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 8vw, 3rem);
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+            z-index: 2;
+            padding: 16px;
+            line-height: 1.3;
+            position: relative;
+        }
+        .poster-slot .poster-text .highlight {
+            display: inline-block;
+            font-size: 1.3em;
+            color: #ff5e5b;
+            text-shadow: 0 0 40px rgba(255, 94, 91, 0.4), 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+        .poster-slot .poster-text .highlight-gold {
+            color: #f4a261;
+            text-shadow: 0 0 40px rgba(244, 162, 97, 0.4), 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+        .poster-slot .poster-text .highlight-teal {
+            color: #48cae4;
+            text-shadow: 0 0 40px rgba(72, 202, 228, 0.4), 0 4px 30px rgba(0, 0, 0, 0.6);
+        }
+        .poster-slot .poster-shine {
+            position: absolute;
+            width: 120%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.08);
+            transform: rotate(-25deg);
+            top: -20%;
+            left: -20%;
+            animation: shineSlide 4s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes shineSlide {
+            0%,
+            100% {
+                top: -30%;
+                left: -20%;
+            }
+            50% {
+                top: 110%;
+                left: 30%;
+            }
+        }
+
+        /* 海报图片主题 */
+        .poster-1 {
+            background-image: url('https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=800&h=400&fit=crop&crop=center');
+        }
+        .poster-2 {
+            background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800&h=400&fit=crop&crop=center');
+        }
+        .poster-3 {
+            background-image: url('https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?w=800&h=400&fit=crop&crop=center');
+        }
+        .poster-carousel-1 {
+            background-image: url('https://images.unsplash.com/photo-1535591273668-578e31182c4f?w=800&h=400&fit=crop&crop=center');
+        }
+        .poster-carousel-2 {
+            background-image: url('https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&h=400&fit=crop&crop=center');
+        }
+        .poster-carousel-3 {
+            background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=800&h=400&fit=crop&crop=center');
+        }
+
+        .poster-slot.dark-theme::before {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .poster-slot.purple-theme::before {
+            background: rgba(108, 92, 231, 0.4);
+        }
+
+        /* ===== 时间线 ===== */
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #ff5e5b, #f4a261, #2a9d8f, #6c5ce7);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            z-index: 0;
+            box-shadow: 0 0 30px rgba(255, 94, 91, 0.3);
+        }
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+            gap: 12px;
+        }
+        .timeline-item:nth-child(odd) {
+            flex-direction: row;
+            padding-right: calc(50% + 20px);
+        }
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+            padding-left: calc(50% + 20px);
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            top: 16px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gradient-2);
+            transform: translate(-50%, 0);
+            z-index: 2;
+            box-shadow: 0 0 30px rgba(255, 94, 91, 0.7);
+            animation: dotPulse 2s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        @keyframes dotPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 94, 91, 0.5);
+                transform: translate(-50%, 0) scale(1);
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(255, 94, 91, 0.9);
+                transform: translate(-50%, 0) scale(1.15);
+            }
+        }
+        .timeline-card {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            backdrop-filter: blur(12px);
+            flex: 1;
+            transition: all 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+        .timeline-item:nth-child(odd) .timeline-card {
+            padding-right: 14px;
+            padding-left: 26px;
+            text-align: right;
+        }
+        .timeline-item:nth-child(odd) .timeline-card .tl-title,
+        .timeline-item:nth-child(odd) .timeline-card .tl-date,
+        .timeline-item:nth-child(odd) .timeline-card .tl-location,
+        .timeline-item:nth-child(odd) .timeline-card .tl-summary {
+            text-align: right;
+        }
+        .timeline-item:nth-child(even) .timeline-card {
+            padding-left: 14px;
+            padding-right: 26px;
+            text-align: left;
+        }
+        .timeline-item:nth-child(even) .timeline-card .tl-title,
+        .timeline-item:nth-child(even) .timeline-card .tl-date,
+        .timeline-item:nth-child(even) .timeline-card .tl-location,
+        .timeline-item:nth-child(even) .timeline-card .tl-summary {
+            text-align: left;
+        }
+
+        .timeline-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 36px rgba(0, 0, 0, 0.4);
+            transform: translateY(-4px);
+        }
+        .timeline-card .tl-date {
+            font-size: 0.8rem;
+            color: #f4a261;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: inline-block;
+            background: rgba(244, 162, 97, 0.15);
+            padding: 2px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(244, 162, 97, 0.2);
+        }
+        .timeline-item:nth-child(odd) .timeline-card .tl-date {
+            float: right;
+        }
+        .timeline-item:nth-child(even) .timeline-card .tl-date {
+            float: left;
+        }
+        .timeline-card .tl-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 3px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 20px rgba(255, 94, 91, 0.15);
+            clear: both;
+            padding-top: 4px;
+        }
+        .timeline-card .tl-location {
+            font-size: 0.8rem;
+            color: #a0b4c8;
+            margin-bottom: 6px;
+        }
+        .timeline-card .tl-summary {
+            font-size: 0.88rem;
+            color: #c8d6e5;
+            line-height: 1.6;
+        }
+        .timeline-card .tl-img-placeholder {
+            width: 100%;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .tl-img-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .tl-img-placeholder .img-overlay-text {
+            position: absolute;
+            bottom: 8px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== 地图 ===== */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            background: rgba(13, 33, 55, 0.5);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--card-border);
+            padding: 12px;
+            overflow: hidden;
+        }
+        .map-wrapper svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .map-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: #a0b4c8;
+        }
+        .map-legend span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .map-legend .dot-river {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #48cae4;
+            box-shadow: 0 0 8px #48cae4;
+        }
+        .map-legend .dot-lake {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2a9d8f;
+            box-shadow: 0 0 8px #2a9d8f;
+        }
+        .map-legend .dot-risk {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff5e5b;
+            box-shadow: 0 0 10px #ff5e5b;
+            animation: dotPulse 1.5s infinite;
+        }
+        @keyframes dotPulse {
+            0%,
+            100% {
+                box-shadow: 0 0 10px #ff5e5b;
+            }
+            50% {
+                box-shadow: 0 0 20px #ff5e5b;
+            }
+        }
+        .map-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            pointer-events: none;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.25s;
+            max-width: 160px;
+            line-height: 1.4;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .map-tooltip .tip-city {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #f4a261;
+        }
+        .map-tooltip .tip-risk {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+        .map-tooltip .tip-risk.high {
+            background: rgba(255, 94, 91, 0.3);
+            color: #ff5e5b;
+            border: 1px solid rgba(255, 94, 91, 0.4);
+        }
+        .map-tooltip .tip-risk.medium {
+            background: rgba(244, 162, 97, 0.25);
+            color: #f4a261;
+            border: 1px solid rgba(244, 162, 97, 0.35);
+        }
+        .map-tooltip .tip-detail {
+            color: #b0c4da;
+            font-size: 0.65rem;
+            margin-top: 2px;
+        }
+
+        /* ===== 图表 ===== */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .chart-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .chart-stack .chart-container {
+            width: 100%;
+        }
+
+        .chart-container {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 16px 12px 14px;
+            backdrop-filter: blur(12px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-container canvas {
+            max-width: 100%;
+            height: auto !important;
+            max-height: 220px;
+        }
+        .chart-label {
+            font-size: 0.7rem;
+            color: #a0b4c8;
+            text-align: center;
+            margin-top: 8px;
+            letter-spacing: 0.3px;
+        }
+        .chart-container.full-width {
+            grid-column: 1 / -1;
+        }
+        .chart-source {
+            font-size: 0.6rem;
+            color: #667;
+            text-align: center;
+            margin-top: 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding-top: 6px;
+            width: 100%;
+        }
+        .chart-source strong {
+            color: #8899aa;
+            font-weight: 600;
+        }
+
+        .chart-conclusion {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-sm);
+            border-left: 3px solid #f4a261;
+            width: 100%;
+            font-size: 0.85rem;
+            color: #d0dce8;
+            line-height: 1.6;
+        }
+        .chart-conclusion strong {
+            color: #f4a261;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .chart-controls button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #c8d6e5;
+            padding: 4px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+        .chart-controls button:hover {
+            background: rgba(255, 94, 91, 0.25);
+            border-color: #ff5e5b;
+            box-shadow: 0 0 20px rgba(255, 94, 91, 0.15);
+        }
+        .chart-controls button.active {
+            background: var(--gradient-2);
+            border-color: transparent;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* ===== 情感条 ===== */
+        .sentiment-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 100%;
+        }
+        .sentiment-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sentiment-bar-label {
+            width: 44px;
+            font-size: 0.75rem;
+            color: #c8d6e5;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .sentiment-bar-track {
+            flex: 1;
+            height: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .sentiment-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1.5s var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            padding-left: 6px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.3px;
+        }
+        .fill-grief {
+            background: linear-gradient(90deg, #6c5ce7, #a78bfa);
+        }
+        .fill-anger {
+            background: linear-gradient(90deg, #ff5e5b, #ff8c8a);
+        }
+        .fill-call {
+            background: linear-gradient(90deg, #f4a261, #f0c27a);
+        }
+        .fill-warning {
+            background: linear-gradient(90deg, #e76f51, #f4a261);
+        }
+        .fill-reflection {
+            background: linear-gradient(90deg, #2a9d8f, #48cae4);
+        }
+
+        /* ===== 气泡图环状布局 ===== */
+        .bubble-chart-area {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.4s var(--transition-smooth);
+            letter-spacing: 0.3px;
+            font-size: 0.7rem;
+            padding: 0 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: floatBubble 5s ease-in-out infinite;
+            will-change: transform;
+            z-index: 1;
+            touch-action: manipulation;
+        }
+        .bubble:hover {
+            transform: scale(1.15) !important;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.25);
+            z-index: 5;
+        }
+        @keyframes floatBubble {
+            0%,
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-8px) translateX(4px);
+            }
+            50% {
+                transform: translateY(4px) translateX(-3px);
+            }
+            75% {
+                transform: translateY(-6px) translateX(6px);
+            }
+        }
+
+        /* ===== 折叠面板 ===== */
+        .accordion-item {
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            overflow: hidden;
+            background: var(--card-glass);
+            backdrop-filter: blur(8px);
+        }
+        .accordion-header {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            letter-spacing: 0.3px;
+            transition: background 0.3s;
+        }
+        .accordion-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .accordion-header .icon-arrow {
+            transition: transform 0.35s;
+            font-size: 1rem;
+            color: #f4a261;
+        }
+        .accordion-item.open .icon-arrow {
+            transform: rotate(180deg);
+        }
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s var(--transition-smooth);
+            padding: 0 16px;
+            color: #c8d6e5;
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+        .accordion-item.open .accordion-body {
+            max-height: 600px;
+            padding: 0 16px 14px;
+        }
+
+        /* ===== 原因卡片样式 ===== */
+        .reason-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .reason-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            transition: all 0.3s;
+        }
+        .reason-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 94, 91, 0.3);
+        }
+        .reason-card .reason-title {
+            font-weight: 700;
+            color: #f4a261;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        .reason-card .reason-desc {
+            color: #b0c4da;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+        .reason-card .reason-stat {
+            display: inline-block;
+            background: rgba(255, 94, 91, 0.15);
+            color: #ff8c8a;
+            padding: 1px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        @media (max-width: 768px) {
+            .reason-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        .ripple-btn {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            color: #fff;
+            background: var(--gradient-2);
+            box-shadow: 0 6px 24px rgba(255, 94, 91, 0.3);
+            transition: all 0.35s;
+            text-decoration: none;
+            touch-action: manipulation;
+        }
+        .ripple-btn:hover {
+            box-shadow: 0 10px 36px rgba(255, 94, 91, 0.5);
+            transform: translateY(-2px);
+        }
+        .ripple-btn .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(0);
+            animation: rippleAnim 0.7s ease-out;
+            pointer-events: none;
+        }
+        @keyframes rippleAnim {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 问答样式 ===== */
+        .quiz-section-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 16px;
+            align-items: start;
+        }
+        @media (max-width: 768px) {
+            .quiz-section-wrapper {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .quiz-section-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .quiz-section-title .badge {
+            font-size: 0.6rem;
+            background: var(--gradient-2);
+            padding: 2px 12px;
+            border-radius: 20px;
+            margin-left: 8px;
+            color: #fff;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .quiz-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            backdrop-filter: blur(12px);
+            transition: 0.3s;
+        }
+        .quiz-card.short-answer {
+            cursor: pointer;
+        }
+        .quiz-card.short-answer:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 94, 91, 0.4);
+        }
+        .quiz-card.short-answer .quiz-question {
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        .quiz-card.short-answer .quiz-answer {
+            color: #b0c4da;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            display: none;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-top: 6px;
+        }
+        .quiz-card.short-answer.reveal .quiz-answer {
+            display: block;
+        }
+        .quiz-card.short-answer .hint-text {
+            color: #667;
+            font-size: 0.7rem;
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .quiz-card.short-answer.reveal .hint-text {
+            display: none;
+        }
+
+        .quiz-card.choice {
+            cursor: default;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .quiz-card.choice .quiz-question {
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .quiz-card.choice .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .quiz-card.choice .quiz-option {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #c8d6e5;
+            font-size: 0.82rem;
+            touch-action: manipulation;
+        }
+        .quiz-card.choice .quiz-option:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(2px);
+        }
+        .quiz-card.choice .quiz-option.correct {
+            background: rgba(42, 157, 143, 0.3);
+            border-color: #2a9d8f;
+            color: #fff;
+        }
+        .quiz-card.choice .quiz-option.wrong {
+            background: rgba(255, 94, 91, 0.3);
+            border-color: #ff5e5b;
+            color: #fff;
+        }
+        .quiz-card.choice .quiz-option.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .quiz-card.choice .quiz-feedback {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            display: none;
+        }
+        .quiz-card.choice .quiz-feedback.show {
+            display: block;
+        }
+        .quiz-card.choice .quiz-feedback.correct {
+            background: rgba(42, 157, 143, 0.15);
+            border: 1px solid rgba(42, 157, 143, 0.3);
+            color: #a0d8c0;
+        }
+        .quiz-card.choice .quiz-feedback.wrong {
+            background: rgba(255, 94, 91, 0.15);
+            border: 1px solid rgba(255, 94, 91, 0.3);
+            color: #ffb0b0;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gradient-2);
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 99;
+            box-shadow: 0 4px 20px rgba(255, 94, 91, 0.4);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 768px) {
+            .main-wrapper {
+                padding: 0 12px;
+            }
+            .top-nav {
+                padding: 8px 12px;
+                border-radius: 30px;
+                gap: 4px;
+            }
+            .nav-logo {
+                font-size: 1rem;
+                margin-right: 4px;
+            }
+            .nav-links a {
+                font-size: 0.65rem;
+                padding: 4px 10px;
+            }
+            .hero-section {
+                min-height: auto;
+                padding: 30px 10px 20px;
+            }
+            .hero-title {
+                font-size: 2rem;
+            }
+            .hero-subtitle {
+                font-size: 0.9rem;
+            }
+            .hero-stats-row {
+                gap: 8px;
+            }
+            .hero-stat {
+                padding: 8px 12px;
+                min-width: 60px;
+                max-width: 100px;
+            }
+            .hero-stat-num {
+                font-size: 1.2rem;
+            }
+            .hero-stat-label {
+                font-size: 0.6rem;
+            }
+            .poster-slot {
+                min-height: 150px;
+                margin: 12px 0;
+            }
+            .poster-slot .poster-text {
+                font-size: 1.8rem;
+                padding: 12px;
+            }
+            .poster-slot .poster-text .highlight {
+                font-size: 1.2em;
+            }
+            .chart-container canvas {
+                max-height: 180px;
+            }
+            .bubble-chart-area {
+                height: 220px;
+            }
+            .bubble {
+                font-size: 0.6rem !important;
+                padding: 0 2px;
+            }
+            .quiz-section-wrapper {
+                gap: 20px;
+            }
+            .quiz-card {
+                padding: 12px 14px;
+            }
+            .timeline-line {
+                left: 16px;
+                width: 3px;
+            }
+            .timeline-item {
+                flex-direction: column !important;
+                padding-left: 40px !important;
+                padding-right: 0 !important;
+                margin-bottom: 30px;
+            }
+            .timeline-item:nth-child(odd) .timeline-card,
+            .timeline-item:nth-child(even) .timeline-card {
+                padding: 16px 18px !important;
+                text-align: left !important;
+            }
+            .timeline-item:nth-child(odd) .timeline-card .tl-title,
+            .timeline-item:nth-child(odd) .timeline-card .tl-date,
+            .timeline-item:nth-child(odd) .timeline-card .tl-location,
+            .timeline-item:nth-child(odd) .timeline-card .tl-summary,
+            .timeline-item:nth-child(even) .timeline-card .tl-title,
+            .timeline-item:nth-child(even) .timeline-card .tl-date,
+            .timeline-item:nth-child(even) .timeline-card .tl-location,
+            .timeline-item:nth-child(even) .timeline-card .tl-summary {
+                text-align: left !important;
+            }
+            .timeline-item:nth-child(odd) .timeline-card .tl-date,
+            .timeline-item:nth-child(even) .timeline-card .tl-date {
+                float: none;
+                display: inline-block;
+            }
+            .timeline-dot {
+                left: 16px;
+                width: 16px;
+                height: 16px;
+                top: 14px;
+            }
+            .timeline-card .tl-title {
+                font-size: 1rem;
+            }
+            .timeline-card .tl-summary {
+                font-size: 0.82rem;
+            }
+            .timeline-card .tl-img-placeholder {
+                height: 100px;
+            }
+            .map-tooltip {
+                max-width: 140px;
+                font-size: 0.6rem;
+                padding: 6px 10px;
+            }
+            .section-block {
+                margin: 20px 0;
+                padding: 12px 0;
+            }
+            .section-header {
+                margin-bottom: 20px;
+            }
+            .section-title {
+                font-size: 1.5rem;
+            }
+            .section-desc {
+                font-size: 0.85rem;
+                padding: 0 8px;
+            }
+            .glass-card {
+                padding: 16px;
+            }
+            .accordion-header {
+                font-size: 0.85rem;
+                padding: 10px 14px;
+            }
+            .accordion-body {
+                font-size: 0.8rem;
+            }
+            .chart-conclusion {
+                font-size: 0.78rem;
+                padding: 10px 12px;
+            }
+            .reason-card .reason-title {
+                font-size: 0.85rem;
+            }
+            .reason-card .reason-desc {
+                font-size: 0.78rem;
+            }
+            .reason-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            #posterCarousel .poster-slot {
+                min-height: 150px;
+            }
+            #posterCarousel .poster-slot .poster-text {
+                font-size: 1.6rem !important;
+            }
+            #posterCarousel .poster-slot .poster-text .highlight {
+                font-size: 1.2em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-links a {
+                font-size: 0.55rem;
+                padding: 3px 8px;
+            }
+            .hero-title {
+                font-size: 1.7rem;
+            }
+            .hero-stat-num {
+                font-size: 1rem;
+            }
+            .hero-stat {
+                padding: 6px 8px;
+                min-width: 50px;
+                max-width: 80px;
+            }
+            .hero-stat-label {
+                font-size: 0.5rem;
+            }
+            .bubble-chart-area {
+                height: 180px;
+            }
+            .bubble {
+                font-size: 0.5rem !important;
+            }
+            .chart-container canvas {
+                max-height: 150px;
+            }
+            .poster-slot .poster-text {
+                font-size: 1.5rem;
+            }
+            .poster-slot .poster-text .highlight {
+                font-size: 1.1em;
+            }
+            #posterCarousel .poster-slot .poster-text {
+                font-size: 1.3rem !important;
+            }
+        }
+
+        .quiz-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .quiz-column .quiz-grid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .quiz-card {
+            flex-shrink: 0;
+        }
+
+        #posterCarousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 0;
+            scroll-behavior: smooth;
+            width: 100%;
+            padding: 0;
+            border-radius: var(--radius-lg);
+            -webkit-overflow-scrolling: touch;
+        }
+        #posterCarousel .poster-slot {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            min-height: 200px;
+            margin: 0;
+            border-radius: var(--radius-lg);
+        }
+        #posterCarousel .poster-slot .poster-text {
+            font-size: 2rem;
+        }
+        @media (max-width: 768px) {
+            #posterCarousel .poster-slot {
+                min-height: 150px;
+            }
+            #posterCarousel .poster-slot .poster-text {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+    <div class="main-wrapper">
+        <nav class="top-nav" id="topNav">
+            <span class="nav-logo">生命之渊</span>
+            <ul class="nav-links">
+                <li><a href="#sentiment">舆情</a></li>
+                <li><a href="#academic">洞察</a></li>
+                <li><a href="#hubei-map">水域</a></li>
+                <li><a href="#data-charts">数据</a></li>
+                <li><a href="#timeline">案例</a></li>
+                <li><a href="#quiz-section">问答</a></li>
+                <li><a href="#poster-section" class="nav-cta">警示</a></li>
+            </ul>
+        </nav>
+
+        <!-- ===== HERO ===== -->
+        <section class="hero-section">
+            <span class="hero-badge">珍爱生命 · 远离溺水</span>
+            <h1 class="hero-title">每一滴水中<br>都藏着无声的警示</h1>
+            <p class="hero-subtitle">
+                溺水是全球1-14岁儿童伤害死亡的首要原因之一。在中国，每年有数万个家庭因溺水而破碎。
+                我们分析舆情、剖析原因、展示数据，只为唤起每一个人的警觉。
+            </p>
+            <div class="hero-stats-row">
+                <div class="hero-stat"><span class="hero-stat-num">57,000+</span><span class="hero-stat-label">全球每年</span></div>
+                <div class="hero-stat"><span class="hero-stat-num">36%</span><span class="hero-stat-label">15岁以下</span></div>
+                <div class="hero-stat"><span class="hero-stat-num">6-8月</span><span class="hero-stat-label">最高发期</span></div>
+                <div class="hero-stat"><span class="hero-stat-num">湖北</span><span class="hero-stat-label">高风险</span></div>
+            </div>
+            <a href="#sentiment" class="ripple-btn" id="heroCta">探索数据真相 ↓</a>
+        </section>
+
+        <!-- ===== 海报1 ===== -->
+        <div class="poster-slot poster-1" id="poster1">
+            <div class="poster-shine"></div>
+            <span class="poster-text">别让水<br>成为永远的 <span class="highlight">告别</span></span>
+        </div>
+
+        <!-- ===== 舆情情感 + 气泡图 ===== -->
+        <section class="section-block" id="sentiment">
+            <div class="section-header">
+                <span class="section-tag">舆情情感分析</span>
+                <h2 class="section-title">公众对溺水事件的情感反应</h2>
+                <p class="section-desc">通过对微博、抖音、微信公众号等平台约12万条溺水相关讨论进行NLP情感分析，提取出五种核心情感。悲痛与呼吁占据主流，反映出社会对溺水悲剧的深切共情与对安全教育的迫切需求。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="chart-grid">
+                <div class="chart-container" id="sentimentChartContainer">
+                    <h4 style="color:#fff;margin-bottom:12px;letter-spacing:0.5px;font-size:1rem;">社交媒体情感分布</h4>
+                    <div class="sentiment-bars">
+                        <div class="sentiment-bar-item"><span class="sentiment-bar-label">悲痛</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill fill-grief" style="width:0%" data-width="42%">42%</div></div></div>
+                        <div class="sentiment-bar-item"><span class="sentiment-bar-label">愤怒</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill fill-anger" style="width:0%" data-width="18%">18%</div></div></div>
+                        <div class="sentiment-bar-item"><span class="sentiment-bar-label">呼吁</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill fill-call" style="width:0%" data-width="24%">24%</div></div></div>
+                        <div class="sentiment-bar-item"><span class="sentiment-bar-label">警示</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill fill-warning" style="width:0%" data-width="11%">11%</div></div></div>
+                        <div class="sentiment-bar-item"><span class="sentiment-bar-label">反思</span><div class="sentiment-bar-track"><div class="sentiment-bar-fill fill-reflection" style="width:0%" data-width="5%">5%</div></div></div>
+                    </div>
+                    <p class="chart-label">基于2023-2025年微博、抖音等平台溺水相关话题的NLP情感分析</p>
+                    <div class="chart-source"><strong>数据来源：</strong>清博舆情 · 微热点 · 知微事见 联合分析 | 模型：BERT-Chinese | 样本量：127,340条</div>
+                </div>
+            </div>
+
+            <!-- 气泡图放在情感分析下面 -->
+            <div style="max-width:750px;margin:20px auto 0;">
+                <div class="glass-card" style="padding:16px;">
+                    <h4 style="color:#fff;text-align:center;margin-bottom:8px;font-size:1.1rem;letter-spacing:0.5px;">溺水原因权重气泡图</h4>
+                    <p style="color:#a0b8d0;text-align:center;font-size:0.8rem;margin-bottom:12px;">点击气泡查看详细解释 · 大小反映影响程度</p>
+                    <div class="bubble-chart-area" id="bubbleAreaAcademic">
+                        <!-- 由JS动态生成环状气泡 -->
+                    </div>
+                    <div class="chart-source" style="margin-top:8px;"><strong>数据来源：</strong>综合多项学术研究及中国疾控中心溺水专项报告</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 本质原因分析（学术洞察） ===== -->
+        <section class="section-block" id="academic">
+            <div class="section-header">
+                <span class="section-tag">学术洞察 · 本质原因</span>
+                <h2 class="section-title">溺水人群的本质原因分析</h2>
+                <p class="section-desc">综合《中华流行病学杂志》《中国学校卫生》等核心期刊研究，以及中国疾控中心发布的伤害监测数据，溺水并非偶然，而是多重因素叠加的结果。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="glass-card" style="max-width:100%;margin:0 auto;">
+                <p style="color:#c8d6e5;font-size:0.9rem;line-height:1.7;margin-bottom:14px;">
+                    根据《中华流行病学杂志》《中国学校卫生》等核心期刊的多项研究，以及中国疾控中心发布的伤害监测数据，
+                    溺水发生的<strong style="color:#ff5e5b;">本质原因</strong>可归纳为以下七个维度：
+                </p>
+
+                <div class="reason-grid">
+                    <div class="reason-card">
+                        <div class="reason-title">1. 游泳技能缺失</div>
+                        <div class="reason-desc">研究表明，<strong style="color:#ff8c8a;">超过70%的溺水受害者缺乏基本游泳技能</strong>。在中国农村地区，正规培训覆盖率不足15%，恐慌导致无法有效运用有限技能。<span class="reason-stat">占比最高</span></div>
+                    </div>
+                    <div class="reason-card">
+                        <div class="reason-title">2. 监护真空</div>
+                        <div class="reason-desc">《中国儿童溺水流行病学特征及干预策略》指出，<strong style="color:#ff8c8a;">超过60%的儿童溺水事件发生时，监护人距离超过50米或不在场</strong>。留守儿童群体尤为脆弱。<span class="reason-stat">儿童首要原因</span></div>
+                    </div>
+                    <div class="reason-card">
+                        <div class="reason-title">3. 水域环境风险</div>
+                        <div class="reason-desc">自然水域占比超80%，存在暗流、淤泥、水草、温差等隐患。湖北"三无"水域（无围栏、无救生设备、无监控探头）问题突出。<span class="reason-stat">71.9%警情</span></div>
+                    </div>
+                    <div class="reason-card">
+                        <div class="reason-title">4. 青少年冒险行为</div>
+                        <div class="reason-desc">青春期大脑前额叶皮层发育不完全，导致高估能力、低估风险。男性青少年风险是女性的2-3倍。<span class="reason-stat">47%结伴溺亡</span></div>
+                    </div>
+                    <div class="reason-card">
+                        <div class="reason-title">5. 救援知识匮乏</div>
+                        <div class="reason-desc">盲目下水施救常导致连环溺水。正确做法是"叫、伸、抛"——呼叫成人、延伸长杆、抛掷漂浮物。<span class="reason-stat">二次伤害主因</span></div>
+                    </div>
+                    <div class="reason-card">
+                        <div class="reason-title">6. 社会经济因素</div>
+                        <div class="reason-desc">农村地区缺乏游泳设施和安全教育资源，防溺水意识薄弱。家庭经济条件限制儿童接受正规游泳培训的机会。<span class="reason-stat">城乡差距显著</span></div>
+                    </div>
+                    <div class="reason-card" style="grid-column: 1 / -1;">
+                        <div class="reason-title">7. 季节性因素</div>
+                        <div class="reason-desc">暑期高温导致下水意愿增强，<strong style="color:#ff8c8a;">6-8月占全年溺亡事件的62%</strong>。高温天气下人们更倾向于亲水活动，风险意识下降，是暑期防溺水工作的重要挑战。<span class="reason-stat">暑期高发</span></div>
+                    </div>
+                </div>
+
+                <div class="chart-source" style="margin-top:14px;"><strong>文献来源：</strong>《中华流行病学杂志》2022-2024 · 《中国学校卫生》 · 中国疾控中心《全国伤害监测报告》</div>
+            </div>
+        </section>
+
+        <!-- ===== 湖北地图 ===== -->
+        <section class="section-block" id="hubei-map">
+            <div class="section-header">
+                <span class="section-tag">湖北省水域地图</span>
+                <h2 class="section-title">千湖之省 · 水域风险分布</h2>
+                <p class="section-desc">湖北江河湖泊密布，长江、汉江贯穿全境，丹江口水库、洪湖等大型水域暗藏风险。地图标注了近年溺水高发城市，<strong>触摸或悬浮</strong>可查看详细风险信息。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="map-wrapper" id="mapContainer">
+                <svg viewBox="0 0 600 520" id="hubeiSvg">
+                    <defs>
+                        <filter id="glowLine"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                        <radialGradient id="lakeGlow" cx="50%" cy="50%"><stop offset="0%" stop-color="#48cae4" stop-opacity="0.6"/><stop offset="100%" stop-color="#2a9d8f" stop-opacity="0.1"/></radialGradient>
+                    </defs>
+                    <polygon points="160,30 200,22 250,15 310,12 370,18 430,25 470,38 500,55 520,72 535,95 545,120 548,148 542,175 530,200 520,225 505,250 490,268 475,285 458,300 440,315 425,328 410,340 395,350 378,358 360,365 340,370 318,374 295,376 272,374 250,368 228,358 208,345 188,328 170,308 155,285 142,260 132,235 125,208 122,178 124,148 130,118 138,90 148,62 155,42" fill="rgba(13,33,55,0.55)" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" filter="url(#glowLine)" stroke-linejoin="round"/>
+                    <path d="M125,200 Q180,195 230,210 Q280,225 320,240 Q360,255 400,260 Q440,265 480,258 Q510,252 540,240" fill="none" stroke="#48cae4" stroke-width="4.5" opacity="0.85" filter="url(#glowLine)"/>
+                    <path d="M125,200 Q180,195 230,210 Q280,225 320,240 Q360,255 400,260 Q440,265 480,258 Q510,252 540,240" fill="none" stroke="rgba(72,202,228,0.3)" stroke-width="10" opacity="0.35"/>
+                    <path d="M200,110 Q230,130 260,155 Q290,175 310,195 Q330,215 340,235" fill="none" stroke="#7ec8e3" stroke-width="3" opacity="0.75" stroke-dasharray="8,4"/>
+                    <ellipse cx="205" cy="95" rx="28" ry="16" fill="url(#lakeGlow)" stroke="#2a9d8f" stroke-width="1.5" opacity="0.8"/><text x="205" y="92" fill="#fff" font-size="8" text-anchor="middle" font-weight="600">丹江口水库</text>
+                    <ellipse cx="340" cy="320" rx="22" ry="12" fill="url(#lakeGlow)" stroke="#2a9d8f" stroke-width="1.5" opacity="0.8"/><text x="340" y="317" fill="#fff" font-size="7.5" text-anchor="middle" font-weight="600">洪湖</text>
+                    <ellipse cx="430" cy="290" rx="18" ry="10" fill="url(#lakeGlow)" stroke="#2a9d8f" stroke-width="1.5" opacity="0.8"/><text x="430" y="287" fill="#fff" font-size="7.5" text-anchor="middle" font-weight="600">梁子湖</text>
+                    <circle cx="380" cy="225" r="9" fill="url(#lakeGlow)" stroke="#2a9d8f" stroke-width="1.5" opacity="0.9"/><text x="380" y="222" fill="#fff" font-size="7" text-anchor="middle" font-weight="600">东湖</text>
+                    <path d="M160,290 Q180,300 200,310 Q220,318 240,325" fill="none" stroke="#7ec8e3" stroke-width="2.5" opacity="0.6" stroke-dasharray="6,3"/>
+                    <circle cx="370" cy="218" r="7" fill="#ff5e5b" stroke="#fff" stroke-width="2.5" data-city="武汉" data-risk="高风险" data-detail="长江与汉江交汇 · 东湖 · 沙湖 · 近年溺亡事件频发" data-risk-level="high"/>
+                    <text x="378" y="214" fill="#fff" font-size="9" font-weight="700">武汉</text>
+                    <circle cx="240" cy="130" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="襄阳" data-risk="中高风险" data-detail="汉江沿岸 · 汉江水库 · 夏季游泳溺亡多发" data-risk-level="medium"/>
+                    <text x="248" y="127" fill="#f4a261" font-size="8" font-weight="600">襄阳</text>
+                    <circle cx="180" cy="200" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="宜昌" data-risk="中高风险" data-detail="长江沿岸 · 三峡库区 · 水流湍急" data-risk-level="medium"/>
+                    <text x="155" y="195" fill="#f4a261" font-size="8" font-weight="600">宜昌</text>
+                    <circle cx="310" cy="280" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="荆州" data-risk="中高风险" data-detail="长江沿岸 · 洪湖 · 湖泊密布" data-risk-level="medium"/>
+                    <text x="318" y="277" fill="#f4a261" font-size="8" font-weight="600">荆州</text>
+                    <circle cx="460" cy="250" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="黄石" data-risk="中风险" data-detail="长江沿岸 · 磁湖 · 采矿遗留水域" data-risk-level="medium"/>
+                    <text x="468" y="247" fill="#f4a261" font-size="8" font-weight="600">黄石</text>
+                    <circle cx="150" cy="80" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="十堰" data-risk="中风险" data-detail="丹江口水库 · 南水北调水源地 · 库区水深" data-risk-level="medium"/>
+                    <text x="130" y="75" fill="#f4a261" font-size="8" font-weight="600">十堰</text>
+                    <circle cx="120" cy="245" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="恩施" data-risk="中风险" data-detail="清江流域 · 峡谷溪流 · 山区水域复杂" data-risk-level="medium"/>
+                    <text x="98" y="240" fill="#f4a261" font-size="8" font-weight="600">恩施</text>
+                    <circle cx="330" cy="170" r="5" fill="#f4a261" stroke="#fff" stroke-width="2" data-city="随州" data-risk="中风险" data-detail="府河 · 水库众多 · 近年车辆落水事件" data-risk-level="medium"/>
+                    <text x="338" y="167" fill="#f4a261" font-size="8" font-weight="600">随州</text>
+                </svg>
+                <div class="map-tooltip" id="mapTooltip"></div>
+                <div class="map-legend">
+                    <span><span class="dot-river"></span> 河流</span>
+                    <span><span class="dot-lake"></span> 湖泊</span>
+                    <span><span class="dot-risk"></span> 高风险</span>
+                    <span style="color:#f4a261;">● 中高风险</span>
+                </div>
+            </div>
+            <div class="chart-source" style="max-width:100%;margin:10px auto 0;text-align:center;"><strong>数据来源：</strong>湖北省水利厅 · 湖北应急管理厅 · 2023-2025年公开报道统计</div>
+        </section>
+
+        <!-- ===== 海报2 ===== -->
+        <div class="poster-slot poster-2" id="poster2" style="position: relative;">
+            <div class="poster-shine"></div>
+            <span class="poster-text" style="font-size:2.4rem; position: relative; z-index:2; text-shadow: 0 4px 30px rgba(0,0,0,0.8);">
+                千湖之省<br>每一片水都需 <span class="highlight-gold">敬畏</span>
+            </span>
+        </div>
+
+        <!-- ===== 数据图表 ===== -->
+        <section class="section-block" id="data-charts">
+            <div class="section-header">
+                <span class="section-tag">趋势分析</span>
+                <h2 class="section-title">2023-2025 溺水数据对比</h2>
+                <p class="section-desc">通过对比全国与湖北的溺水报道量、月份分布和地点类型，清晰呈现溺水事件的时空特征。每张图表下方附有核心结论。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="chart-stack">
+                <div class="chart-container">
+                    <h4 style="color:#fff;margin-bottom:8px;font-size:1rem;">全国 vs 湖北 年度溺水事件报道量</h4>
+                    <canvas id="barChart" width="400" height="280"></canvas>
+                    <p class="chart-label">2018-2025年公开报道统计</p>
+                    <div class="chart-conclusion">
+                        <strong>📊 结论：</strong>2018-2025年，全国溺水事件报道量总体呈波动上升趋势，2024年达到峰值310起。湖北省作为千湖之省，溺水事件也逐年增多，与全国趋势基本一致，反映出水域安全问题的严峻性。
+                    </div>
+                    <div class="chart-source"><strong>数据来源：</strong>中国应急管理报 · 各省市消防/公安通报 · 澎湃新闻溺水专题</div>
+                </div>
+                <div class="chart-container">
+                    <h4 style="color:#fff;margin-bottom:8px;font-size:1rem;">溺水发生月份分布</h4>
+                    <canvas id="doughnutChart" width="280" height="280"></canvas>
+                    <p class="chart-label">6-8月为绝对高发期，占全年62%</p>
+                    <div class="chart-conclusion">
+                        <strong>📊 结论：</strong>6-8月暑期是溺水绝对高发期，占全年的62%。5月和9月次之，占18%。高温天气下人们亲水活动增多，风险显著上升，需要重点加强暑期防溺水教育和监管。
+                    </div>
+                    <div class="chart-source"><strong>数据来源：</strong>中国疾控中心 · 全国伤害监测系统（2018-2024）</div>
+                </div>
+                <div class="chart-container">
+                    <h4 style="color:#fff;margin-bottom:8px;font-size:1rem;">溺水地点类型分布</h4>
+                    <canvas id="pieChart" width="280" height="280"></canvas>
+                    <p class="chart-label">自然水域占比超80%</p>
+                    <div class="chart-conclusion">
+                        <strong>📊 结论：</strong>自然水域（河流38%、湖泊水库28%、池塘18%）合计占比超过80%，是溺水发生的主要场所。正规游泳池仅占10%，说明野泳和自然水域戏水是溺水的主要风险源。
+                    </div>
+                    <div class="chart-source"><strong>数据来源：</strong>中国疾控中心 · 农村与城市溺水对比研究（2023）</div>
+                </div>
+            </div>
+
+            <!-- 动态折线图 -->
+            <div class="chart-grid" style="margin-top:24px;">
+                <div class="chart-container full-width" id="lineChartContainer">
+                    <h4 style="color:#fff;margin-bottom:6px;font-size:1rem;letter-spacing:0.5px;">全国溺水死亡人数趋势</h4>
+                    <p style="color:#a0b8d0;font-size:0.8rem;margin-bottom:10px;">滚动到可视区域自动逐帧绘制，可暂停/切换数据集。</p>
+                    <canvas id="dynamicLineChart" width="600" height="300"></canvas>
+                    <div class="chart-controls">
+                        <button id="playBtn" class="active">⏸ 暂停</button>
+                        <button id="resetBtn">⟲ 重置</button>
+                        <button id="datasetAll" class="active" data-ds="all">全人群</button>
+                        <button id="datasetChild" data-ds="child">青少年</button>
+                        <button id="datasetHubei" data-ds="hubei">湖北</button>
+                    </div>
+                    <p class="chart-label">数据来源：中国疾控中心、世界卫生组织及公开统计资料</p>
+                    <div class="chart-conclusion" style="border-left-color:#48cae4;">
+                        <strong>📊 结论：</strong>全国溺水死亡人数呈逐年下降趋势，反映出安全教育和防护措施的积极成效。但儿童（0-17岁）占比仍然较高，湖北省作为水域大省，防溺水任务依然艰巨。
+                    </div>
+                    <div class="chart-source"><strong>数据来源：</strong>WHO全球健康数据 · 中国疾控中心《中国死因监测数据集》 · 湖北省卫健委</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 海报3 ===== -->
+        <div class="poster-slot poster-3" id="poster3">
+            <div class="poster-shine"></div>
+            <span class="poster-text">学会游泳<br>是给自己的 <span class="highlight-teal">生命绳</span></span>
+        </div>
+
+        <!-- ===== 时间线 ===== -->
+        <section class="section-block" id="timeline">
+            <div class="section-header">
+                <span class="section-tag">真实案例时间线</span>
+                <h2 class="section-title">2023-2025 湖北及全国溺水案例</h2>
+                <p class="section-desc">每一起悲剧背后都是一个破碎的家庭。以下案例均来自公开新闻报道，希望能以真实的力量唤醒对水的敬畏。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2023年5月16日</span>
+                        <h4 class="tl-title">湖北恩施·狮子关景区浮桥坠车</h4>
+                        <span class="tl-location">📍 恩施州宣恩县狮子关景区</span>
+                        <p class="tl-summary">一辆商务车从景区水上浮桥落水，车上8人，3人脱险上岸，5人经抢救无效死亡。景区随后暂停营业，浮桥安全问题引发全国关注。</p>
+                        <div class="tl-img-placeholder"><img src="https://imagepphcloud.thepaper.cn/pph/image/252/258/622.jpg" alt="恩施狮子关景区"><span class="img-overlay-text">来源：澎湃新闻</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2023年7月5日</span>
+                        <h4 class="tl-title">湖北孝感·男孩泄洪围观溺亡</h4>
+                        <span class="tl-location">📍 孝感安陆市解放山大坝下游</span>
+                        <p class="tl-summary">大坝泄洪，大量市民在岸边围观，一名男孩不慎落水，其父下水施救未果。男孩次日上午被打捞上岸，已无生命体征。事发时大坝已有防护栏和安全提示，但人群聚集增加了风险。</p>
+                        <div class="tl-img-placeholder"><img src="https://image.uczzd.cn/3404657639689888011.jpg?id=0&from=export&width=670&srv=zzd&imode=3&height=944" alt="孝感安陆泄洪"><span class="img-overlay-text">来源：红星新闻</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2023年7月16日</span>
+                        <h4 class="tl-title">广西梧州·父子下河游泳双双溺亡</h4>
+                        <span class="tl-location">📍 梧州市京南镇</span>
+                        <p class="tl-summary">一父亲带两名孩子下河游泳，小儿子溺水，父亲下水施救，最终父亲和大儿子双双溺亡，小儿子被救上岸。父亲缺乏救援知识，盲目下水导致悲剧扩大。</p>
+                        <div class="tl-img-placeholder"><img src="https://p9.itc.cn/q_70/images03/20230725/350e560acb25448e980ed205caa84272.jpeg" alt="广西梧州"><span class="img-overlay-text">来源：贵州消防</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2023年7月31日</span>
+                        <h4 class="tl-title">湖北罗田·3名小孩下河戏水被困</h4>
+                        <span class="tl-location">📍 黄冈市罗田县</span>
+                        <p class="tl-summary">3名小孩私自下河游泳时被困河中央，消防救援站接警后赶赴现场将3人营救上岸。所幸救援及时，未造成人员伤亡，但暴露了暑期儿童监管的薄弱环节。</p>
+                        <div class="tl-img-placeholder"><img src="https://i2.chinanews.com.cn/simg/ypt/2023/230802/2cb165cf-1ea1-46bf-baaa-13b0bcdd95af_zsite.jpg" alt="湖北罗田"><span class="img-overlay-text">来源：中国新闻网</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2024年7月14日</span>
+                        <h4 class="tl-title">湖北武汉·陈帅伟救落水母女致脑损伤</h4>
+                        <span class="tl-location">📍 武汉市东湖高新区兰亭公园九峰水库</span>
+                        <p class="tl-summary">一位母亲带两个孩子在九峰水库边玩水时不慎滑入深水区。陈帅伟（水性不佳）听到呼救后跳入水中，奋力将母女三人推向岸边。其小女儿也不慎落水，陈帅伟再次救起女儿后，因体力不支沉入水底数分钟。经抢救恢复，但造成严重脑损伤，需长期康复治疗。2025年8月入选"中国好人榜"。</p>
+                        <div class="tl-img-placeholder"><img src="https://imgm.gmw.cn/attachement/jpg/site215/20240719/1759206629468976177.jpg" alt="武汉救人"><span class="img-overlay-text">来源：潇湘晨报</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2024年7月14日</span>
+                        <h4 class="tl-title">湖北随州·面包车落水4人遇难</h4>
+                        <span class="tl-location">📍 随州市曾都区府河镇</span>
+                        <p class="tl-summary">一辆小型车辆落水，车上4人（3名成年人、1名未成年人）全部遇难。随州消防调集30余人展开搜救，当晚将落水车辆和4名失联人员全部打捞上岸。事故原因疑与路况及驾驶操作有关。</p>
+                        <div class="tl-img-placeholder"><img src="https://q6.itc.cn/q_70/images03/20240716/d3c64f3b7876440fa2aba4c7e40dd335.jpeg" alt="随州车辆落水"><span class="img-overlay-text">来源：锦观新闻</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2024年7月13日</span>
+                        <h4 class="tl-title">湖北警方发布防溺水警示片</h4>
+                        <span class="tl-location">📍 湖北省各地</span>
+                        <p class="tl-summary">湖北省公安厅发布防溺水警示教育片，7名来自不同地区的民警站在各自辖区发生的真实溺亡现场，通过真实场景再现，呼吁社会各界高度重视防溺水工作。揭示了四大溺水错觉："会游泳就不会溺水""只有大江大河才危险""结伴游泳就安全""溺水者都是主动下水的"。</p>
+                        <div class="tl-img-placeholder"><img src="https://img.cjyun.org/a/10008/202507/ffd30f85d7a9c5dfa93629063e394440.jpeg" alt="儿童溺水"><span class="img-overlay-text">来源：长江云新闻</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2025年6月15日</span>
+                        <h4 class="tl-title">河南许昌·小学生捞鱼两死一伤</h4>
+                        <span class="tl-location">📍 许昌市鄢陵县鹤鸣湖</span>
+                        <p class="tl-summary">3名小学生结伴到湖边游玩，在浅水区捞鱼时不慎滑落至深水区，其中1人爬出后求助报警，2人经救治无效死亡。事发水域设有警示标志，但儿童对危险认知不足。</p>
+                        <div class="tl-img-placeholder"><img src="https://p3-sign.toutiaoimg.com/tos-cn-i-axegupay5k/a011c24f1ae94cdebb5b23a5b63a2a50~tplv-tt-origin-web:gif.jpeg?_iz=58558&from=article.pc_detail&lk3s=953192f4&x-expires=1783736392&x-signature=NxnLyxj1Xa2okN0U8QsLBXbLgAs%3D" alt="河南许昌"><span class="img-overlay-text">来源：大河报</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2025年7月1日</span>
+                        <h4 class="tl-title">重庆丰都·8岁女孩被带往长江溺亡</h4>
+                        <span class="tl-location">📍 重庆市丰都县长江段</span>
+                        <p class="tl-summary">8岁女孩萌萌回到外婆家过暑假，被不熟悉的男邻居带去长江游泳。女孩不会游泳，在江中被卷入漩涡，男邻居施救未果。萌萌遗体当晚被打捞上岸。此案例警示：切勿将儿童交给不熟悉的人看护。</p>
+                        <div class="tl-img-placeholder"><img src="https://p3-sign.toutiaoimg.com/tos-cn-i-axegupay5k/015ea0dab6a84bfe991cafc1fcd0e043~tplv-tt-origin-web:gif.jpeg?_iz=58558&from=article.pc_detail&lk3s=953192f4&x-expires=1783736341&x-signature=J%2B6z%2BTx04vTYnVuhpE7i35%2FaKp4%3D" alt="重庆丰都"><span class="img-overlay-text">来源：重庆日报</span></div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-card">
+                        <span class="tl-date">2025年7月18日</span>
+                        <h4 class="tl-title">云南西双版纳·6岁女童戏水池溺亡</h4>
+                        <span class="tl-location">📍 西双版纳州某酒店戏水池</span>
+                        <p class="tl-summary">6岁女童随旅行团入住酒店，在与酒店合作的"儿童水寨"戏水池玩耍时，左腿陷入回水管被牢牢吸住，母亲与多人合力均未能将孩子救出，孩子最终不幸溺亡。此事件暴露了酒店泳池回水系统安全设计的严重缺陷。</p>
+                        <div class="tl-img-placeholder"><img src="https://imgm.gmw.cn/attachement/jpg/site215/20250811/6454782284047533528.jpg" alt="云南西双版纳"><span class="img-overlay-text">来源：澎湃新闻</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-source" style="max-width:100%;margin:12px auto 0;text-align:center;"><strong>案例来源：</strong>澎湃新闻 · 红星新闻 · 中国新闻网 · 潇湘晨报 · 重庆日报 · 大河报 · 长江云新闻等</div>
+        </section>
+
+        <!-- ===== 知识问答 ===== -->
+        <section class="section-block" id="quiz-section">
+            <div class="section-header">
+                <span class="section-tag">知识问答</span>
+                <h2 class="section-title">防溺水安全知识测验</h2>
+                <p class="section-desc">通过简答题巩固知识，通过选择题检验理解。点击简答题卡片查看答案，选择选择题选项获取即时反馈。</p>
+                <div class="section-divider"></div>
+            </div>
+            <div class="quiz-section-wrapper">
+                <div class="quiz-column">
+                    <div class="quiz-section-title">📝 简答题 <span class="badge">点击展开</span></div>
+                    <div class="quiz-grid">
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">1. 发现有人溺水，第一步应该做什么？</div><div class="quiz-answer">大声呼叫成人或拨打119/120，同时寻找长杆、漂浮物，绝不贸然下水。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">2. 为什么自然水域比游泳池危险得多？</div><div class="quiz-answer">自然水域有暗流、淤泥、水草、水温骤变等隐蔽风险，且没有救生员。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">3. 湖北哪些地方最容易发生溺水？</div><div class="quiz-answer">长江沿岸、汉江、东湖非游泳区、丹江口水库、洪湖及农村池塘、采砂坑。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">4. 溺水者通常有哪些表现？</div><div class="quiz-answer">溺水者往往无法大声呼救，手臂本能地上下或向侧方压水，身体垂直，眼神呆滞或紧闭，头部后仰，嘴巴张开。真实溺水往往悄无声息。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">5. 如何有效预防青少年溺水？</div><div class="quiz-answer">学习正规游泳技能、家长有效监护、远离无防护水域、学会"叫伸抛"救援原则。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">6. 什么是"叫伸抛"救援原则？</div><div class="quiz-answer">叫：大声呼叫成人并拨打急救电话；伸：延伸长杆、树枝等让溺水者抓住；抛：抛掷救生圈、漂浮物等。这是安全救援的核心原则，避免盲目下水施救。</div><div class="hint-text">👆 点击查看答案</div></div>
+                        <div class="quiz-card short-answer" onclick="this.classList.toggle('reveal')"><div class="quiz-question">7. 为什么儿童是溺水的高危人群？</div><div class="quiz-answer">儿童缺乏危险认知和自救能力，好奇心强且容易高估自身能力。同时，监护人监管缺失、留守儿童群体看护薄弱，加上暑期"看护真空"，使得儿童溺水风险显著高于成年人。</div><div class="hint-text">👆 点击查看答案</div></div>
+                    </div>
+                </div>
+                <div class="quiz-column">
+                    <div class="quiz-section-title">🧠 选择题 <span class="badge">即时反馈</span></div>
+                    <div class="quiz-grid">
+                        <div class="quiz-card choice" data-correct="B"><div class="quiz-question"><span class="question-number">1.</span> 以下哪种行为最容易导致青少年溺水？</div><div class="quiz-options"><div class="quiz-option" data-option="A">A. 在游泳池浅水区玩耍</div><div class="quiz-option" data-option="B">B. 结伴到野外水库游泳</div><div class="quiz-option" data-option="C">C. 在家长陪同下划船</div><div class="quiz-option" data-option="D">D. 穿着救生衣钓鱼</div></div><div class="quiz-feedback"></div></div>
+                        <div class="quiz-card choice" data-correct="C"><div class="quiz-question"><span class="question-number">2.</span> 发现有人溺水，以下哪种救援方式是错误的？</div><div class="quiz-options"><div class="quiz-option" data-option="A">A. 立即大声呼救，拨打急救电话</div><div class="quiz-option" data-option="B">B. 将救生圈、竹竿等抛向溺水者</div><div class="quiz-option" data-option="C">C. 直接跳入水中，游向溺水者施救</div><div class="quiz-option" data-option="D">D. 寻找周围可用的漂浮物</div></div><div class="quiz-feedback"></div></div>
+                        <div class="quiz-card choice" data-correct="A"><div class="quiz-question"><span class="question-number">3.</span> 在水边玩耍时，以下哪个地点相对最安全？</div><div class="quiz-options"><div class="quiz-option" data-option="A">A. 设有救生员和围栏的正规游泳馆</div><div class="quiz-option" data-option="B">B. 公园里的景观湖</div><div class="quiz-option" data-option="C">C. 水流湍急的河流边</div><div class="quiz-option" data-option="D">D. 废弃的矿坑积水潭</div></div><div class="quiz-feedback"></div></div>
+                        <div class="quiz-card choice" data-correct="B"><div class="quiz-question"><span class="question-number">4.</span> 如果自己不慎落水，以下哪种自救方式最有效？</div><div class="quiz-options"><div class="quiz-option" data-option="A">A. 拼命挣扎，大声呼救，快速划水</div><div class="quiz-option" data-option="B">B. 仰面朝上，口鼻露出水面，采用"仰漂"节省体力</div><div class="quiz-option" data-option="C">C. 憋气下沉，尝试踩水等待救援</div><div class="quiz-option" data-option="D">D. 立即脱掉衣服，减少阻力游向岸边</div></div><div class="quiz-feedback"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== 底部警示轮播 ===== -->
+        <section class="section-block" id="poster-section">
+            <div class="section-header"><span class="section-tag">警示展区</span><h2 class="section-title">生命至上 · 防溺水</h2><div class="section-divider"></div></section>
+            <div id="posterCarousel">
+                <div class="poster-slot poster-carousel-1"><div class="poster-shine"></div><span class="poster-text">珍爱生命<br>远离 <span class="highlight">野泳</span></span></div>
+                <div class="poster-slot poster-carousel-2"><div class="poster-shine"></div><span class="poster-text">监护不缺位<br>安全不 <span class="highlight-gold">放假</span></span></div>
+                <div class="poster-slot poster-carousel-3"><div class="poster-shine"></div><span class="poster-text">学会游泳<br>学会 <span class="highlight-teal">自救</span></span></div>
+            </div>
+
+            <footer style="text-align:center;padding:30px 16px;border-top:1px solid rgba(255,255,255,0.1);margin-top:30px;">
+                <p style="color:#667;font-size:0.75rem;">生命之渊 · 溺水安全舆情洞察平台 | 数据来源：公开新闻报道、学术期刊、中国疾控中心</p>
+                <p style="color:#556;font-size:0.65rem;margin-top:4px;">本网站内容仅供安全教育参考。珍爱生命，远离危险水域。</p>
+                <p style="color:#445;font-size:0.6rem;margin-top:2px;">© 2023-2025 溺水案例汇编 · 警示长存</p>
+            </footer>
+        </div>
+
+        <script>
+            (function() {
+                // ===== 粒子系统 =====
+                const canvas = document.getElementById('particleCanvas');
+                const ctx = canvas.getContext('2d');
+                let particles = [];
+                let animFrame;
+
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                resizeCanvas();
+                window.addEventListener('resize', () => { resizeCanvas();
+                    initParticles(); });
+
+                class Particle {
+                    constructor() { this.reset(); }
+                    reset() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 2 + 0.6;
+                        this.speedX = (Math.random() - 0.5) * 0.35;
+                        this.speedY = (Math.random() - 0.5) * 0.35 - 0.2;
+                        this.opacity = Math.random() * 0.5 + 0.15;
+                        this.pulse = Math.random() * Math.PI * 2;
+                    }
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        this.pulse += 0.015;
+                        if (this.x < -20 || this.x > canvas.width + 20 || this.y < -20 || this.y > canvas.height + 20) {
+                            this.reset();
+                            if (Math.random() > 0.5) this.y = canvas.height + 10;
+                            else if (Math.random() > 0.5) this.x = canvas.width + 10;
+                        }
+                    }
+                    draw() {
+                        const glow = 0.5 + Math.sin(this.pulse) * 0.25;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(200,210,230,${this.opacity * glow})`;
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255,160,120,${this.opacity * 0.12 * glow})`;
+                        ctx.fill();
+                    }
+                }
+
+                function initParticles() {
+                    const count = Math.min(Math.floor((canvas.width * canvas.height) / 11000), 180);
+                    particles = [];
+                    for (let i = 0; i < count; i++) particles.push(new Particle());
+                }
+                initParticles();
+
+                function animateParticles() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => { p.update();
+                        p.draw(); });
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 90) {
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.strokeStyle = `rgba(255,255,255,${0.04 * (1 - dist/90)})`;
+                                ctx.lineWidth = 0.5;
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    animFrame = requestAnimationFrame(animateParticles);
+                }
+                animateParticles();
+
+                // ===== 情感条动画 =====
+                const sentObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const bars = entry.target.querySelectorAll('.sentiment-bar-fill');
+                            bars.forEach((bar, i) => { setTimeout(() => { bar.style.width = bar.getAttribute(
+                                        'data-width'); }, 200 + i * 80); });
+                            sentObserver.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.4 });
+                const sentContainer = document.getElementById('sentimentChartContainer');
+                if (sentContainer) sentObserver.observe(sentContainer);
+
+                // ===== 折叠面板 =====
+                window.toggleAccordion = function(header) {
+                    const item = header.parentElement;
+                    const isOpen = item.classList.contains('open');
+                    const siblings = item.parentElement.querySelectorAll('.accordion-item');
+                    siblings.forEach(s => s.classList.remove('open'));
+                    if (!isOpen) item.classList.add('open');
+                };
+
+                // ===== 涟漪按钮 =====
+                document.querySelectorAll('.ripple-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const ripple = document.createElement('span');
+                        ripple.className = 'ripple-effect';
+                        const rect = this.getBoundingClientRect();
+                        const size = Math.max(rect.width, rect.height);
+                        ripple.style.width = ripple.style.height = size + 'px';
+                        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+                        this.appendChild(ripple);
+                        ripple.addEventListener('animationend', () => ripple.remove());
+                    });
+                });
+
+                // ===== 气泡图 =====
+                const bubbleData = [
+                    { label: '游泳技能缺失', color: 'rgba(255,94,91,0.85)', size: 110 },
+                    { label: '监护真空', color: 'rgba(244,162,97,0.85)', size: 130 },
+                    { label: '水域环境风险', color: 'rgba(42,157,143,0.85)', size: 90 },
+                    { label: '青少年冒险', color: 'rgba(108,92,231,0.85)', size: 115 },
+                    { label: '救援知识匮乏', color: 'rgba(231,111,81,0.85)', size: 95 }
+                ];
+                const detailsMap = {
+                    '游泳技能缺失': '超过70%的溺水者缺乏基本游泳技能。中国农村地区正规培训覆盖率不足15%，恐慌导致无法有效运用有限技能。',
+                    '监护真空': '60%以上儿童溺水时监护人不在有效监护范围内。留守儿童群体尤为脆弱，暑期"看护真空"现象普遍。',
+                    '水域环境风险': '自然水域缺乏救生设施和安全边界。湖北"三无"水域占比高——无围栏、无救生设备、无监控探头。',
+                    '青少年冒险': '青少年高估能力，同伴压力增加冒险。男性青少年风险是女性的2-3倍，47%的多人溺亡为结伴戏水。',
+                    '救援知识匮乏': '盲目下水施救导致连环溺水，正确做法是"叫、伸、抛"——呼叫成人、延伸长杆、抛掷漂浮物。'
+                };
+
+                const bubbleArea = document.getElementById('bubbleAreaAcademic');
+
+                function renderBubblesRing() {
+                    const containerWidth = bubbleArea.clientWidth || 600;
+                    const containerHeight = bubbleArea.clientHeight || 280;
+                    const centerX = containerWidth / 2;
+                    const centerY = containerHeight / 2;
+                    const radius = Math.min(containerWidth, containerHeight) * 0.30;
+
+                    const shuffled = [...bubbleData];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+
+                    bubbleArea.innerHTML = '';
+                    const count = shuffled.length;
+                    shuffled.forEach((item, index) => {
+                        const angle = (index / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+                        const rOffset = (Math.random() - 0.5) * 30;
+                        const finalR = radius + rOffset;
+                        const x = centerX + Math.cos(angle) * finalR;
+                        const y = centerY + Math.sin(angle) * finalR;
+
+                        const el = document.createElement('div');
+                        el.className = 'bubble';
+                        el.textContent = item.label;
+                        const baseSize = window.innerWidth < 480 ? 60 : (window.innerWidth < 768 ? 75 : 110);
+                        const size = baseSize + (Math.random() - 0.5) * 20;
+                        el.style.width = size + 'px';
+                        el.style.height = size + 'px';
+                        el.style.background = item.color;
+                        el.style.left = (x - size / 2) + 'px';
+                        el.style.top = (y - size / 2) + 'px';
+                        el.style.animationDelay = (Math.random() * 1.5) + 's';
+                        el.style.fontSize = (size > 80) ? '0.75rem' : '0.6rem';
+                        el.dataset.label = item.label;
+                        el.addEventListener('click', function() {
+                            const label = this.dataset.label;
+                            const info = detailsMap[label] || '点击了解更多。';
+                            showToast(label, info);
+                            this.style.transform = 'scale(1.2)';
+                            setTimeout(() => { this.style.transform = ''; }, 350);
+                        });
+                        el.addEventListener('touchstart', function(e) {
+                            e.preventDefault();
+                            const label = this.dataset.label;
+                            const info = detailsMap[label] || '点击了解更多。';
+                            showToast(label, info);
+                            this.style.transform = 'scale(1.2)';
+                            setTimeout(() => { this.style.transform = ''; }, 350);
+                        });
+                        bubbleArea.appendChild(el);
+                    });
+                }
+
+                renderBubblesRing();
+                window.addEventListener('resize', () => { renderBubblesRing(); });
+
+                // ===== Toast =====
+                function showToast(title, msg) {
+                    let toast = document.getElementById('infoToast');
+                    if (!toast) {
+                        toast = document.createElement('div');
+                        toast.id = 'infoToast';
+                        toast.style.cssText =
+                            `position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(0,0,0,0.92);color:#fff;padding:14px 20px;border-radius:20px;max-width:90%;text-align:center;font-size:0.85rem;border:1px solid rgba(255,255,255,0.2);backdrop-filter:blur(10px);transition:all 0.4s;opacity:0;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.6);`;
+                        document.body.appendChild(toast);
+                    }
+                    toast.innerHTML = `<strong style="color:#f4a261;">${title}</strong><br><span style="color:#c8d6e5;">${msg}</span>`;
+                    toast.style.opacity = '1';
+                    toast.style.bottom = '80px';
+                    clearTimeout(toast._timeout);
+                    toast._timeout = setTimeout(() => { toast.style.opacity = '0';
+                        toast.style.bottom = '60px'; }, 3200);
+                }
+
+                // ===== 地图悬浮 =====
+                const mapTooltip = document.getElementById('mapTooltip');
+                const svgEl = document.getElementById('hubeiSvg');
+                const mapContainer = document.getElementById('mapContainer');
+
+                function showMapTooltip(circle, e) {
+                    const city = circle.dataset.city;
+                    const risk = circle.dataset.risk;
+                    const detail = circle.dataset.detail;
+                    const level = circle.dataset.riskLevel || 'medium';
+                    const riskClass = level === 'high' ? 'high' : 'medium';
+                    mapTooltip.innerHTML =
+                        `<div class="tip-city">${city}</div><span class="tip-risk ${riskClass}">${risk}</span><div class="tip-detail">${detail}</div>`;
+                    mapTooltip.style.opacity = '1';
+                    const rect = mapContainer.getBoundingClientRect();
+                    const svgRect = svgEl.getBoundingClientRect();
+                    const cx = parseFloat(circle.getAttribute('cx'));
+                    const cy = parseFloat(circle.getAttribute('cy'));
+                    const scaleX = svgRect.width / 600;
+                    const scaleY = svgRect.height / 520;
+                    const px = svgRect.left + cx * scaleX - rect.left;
+                    const py = svgRect.top + cy * scaleY - rect.top - 60;
+                    mapTooltip.style.left = Math.min(px, rect.width - 160) + 'px';
+                    mapTooltip.style.top = Math.max(py, 10) + 'px';
+                }
+
+                const cityCircles = svgEl.querySelectorAll('circle[data-city]');
+                cityCircles.forEach(circle => {
+                    circle.addEventListener('mouseenter', function(e) { showMapTooltip(this, e); });
+                    circle.addEventListener('mouseleave', () => { mapTooltip.style.opacity = '0'; });
+                    circle.addEventListener('touchstart', function(e) {
+                        e.preventDefault();
+                        showMapTooltip(this, e);
+                        setTimeout(() => { mapTooltip.style.opacity = '0'; }, 3000);
+                    });
+                });
+
+                svgEl.querySelectorAll('path, ellipse').forEach(el => {
+                    el.addEventListener('mouseenter', function(e) {
+                        const label = this.nextElementSibling ? this.nextElementSibling.textContent : '';
+                        if (label) {
+                            mapTooltip.innerHTML =
+                                `<div class="tip-city" style="color:#48cae4;">${label}</div><div class="tip-detail">水域 · 注意安全</div>`;
+                            mapTooltip.style.opacity = '1';
+                            const rect = mapContainer.getBoundingClientRect();
+                            const svgRect = svgEl.getBoundingClientRect();
+                            const cx = parseFloat(this.getAttribute('cx') || this.getAttribute('x') || 300);
+                            const cy = parseFloat(this.getAttribute('cy') || this.getAttribute('y') || 250);
+                            const scaleX = svgRect.width / 600;
+                            const scaleY = svgRect.height / 520;
+                            const px = svgRect.left + cx * scaleX - rect.left;
+                            const py = svgRect.top + cy * scaleY - rect.top - 50;
+                            mapTooltip.style.left = Math.min(px, rect.width - 160) + 'px';
+                            mapTooltip.style.top = Math.max(py, 10) + 'px';
+                        }
+                    });
+                    el.addEventListener('mouseleave', () => { mapTooltip.style.opacity = '0'; });
+                });
+
+                // ===== 图表绘制 =====
+                function setupCanvas(canvasId, drawFn) {
+                    const c = document.getElementById(canvasId);
+                    if (!c) return;
+                    const ctx2 = c.getContext('2d');
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = c.getBoundingClientRect();
+                    c.width = rect.width * dpr;
+                    c.height = rect.height * dpr;
+                    ctx2.scale(dpr, dpr);
+                    drawFn(ctx2, rect.width, rect.height);
+                }
+
+                function drawBars(ctx2, W, H) {
+                    ctx2.clearRect(0, 0, W, H);
+                    const data = [
+                        { label: '2018', national: 215, hubei: 32 },
+                        { label: '2019', national: 228, hubei: 35 },
+                        { label: '2020', national: 240, hubei: 37 },
+                        { label: '2021', national: 255, hubei: 39 },
+                        { label: '2022', national: 268, hubei: 41 },
+                        { label: '2023', national: 280, hubei: 42 },
+                        { label: '2024', national: 310, hubei: 48 },
+                        { label: '2025*', national: 295, hubei: 39 },
+                    ];
+                    const n = data.length;
+                    const maxVal = 350;
+                    const barWidth = Math.min(22, (W - 60) / (n * 2.5));
+                    const gap = barWidth * 1.2;
+                    const totalWidth = n * (2 * barWidth + gap) - gap;
+                    const startX = (W - totalWidth) / 2;
+                    const baseY = H - 30;
+                    const chartH = H - 60;
+
+                    data.forEach((d, i) => {
+                        const x = startX + i * (2 * barWidth + gap);
+                        const hNat = (d.national / maxVal) * chartH;
+                        const gradNat = ctx2.createLinearGradient(x, baseY - hNat, x, baseY);
+                        gradNat.addColorStop(0, '#ff5e5b');
+                        gradNat.addColorStop(1, '#e76f51');
+                        ctx2.fillStyle = gradNat;
+                        ctx2.fillRect(x, baseY - hNat, barWidth, hNat);
+                        ctx2.fillStyle = '#fff';
+                        ctx2.font = '7px Inter,sans-serif';
+                        ctx2.textAlign = 'center';
+                        ctx2.fillText('全国', x + barWidth / 2, baseY - hNat - 4);
+                        ctx2.fillText(d.national, x + barWidth / 2, baseY - hNat - 16);
+
+                        const xHub = x + barWidth + 4;
+                        const hHub = (d.hubei / maxVal) * chartH;
+                        const gradHub = ctx2.createLinearGradient(xHub, baseY - hHub, xHub, baseY);
+                        gradHub.addColorStop(0, '#f4a261');
+                        gradHub.addColorStop(1, '#e76f51');
+                        ctx2.fillStyle = gradHub;
+                        ctx2.fillRect(xHub, baseY - hHub, barWidth, hHub);
+                        ctx2.fillStyle = '#fff';
+                        ctx2.fillText('湖北', xHub + barWidth / 2, baseY - hHub - 4);
+                        ctx2.fillText(d.hubei, xHub + barWidth / 2, baseY - hHub - 16);
+
+                        ctx2.fillStyle = '#c8d6e5';
+                        ctx2.font = '7px Inter,sans-serif';
+                        ctx2.fillText(d.label, x + barWidth + 2, baseY + 14);
+                    });
+                }
+
+                function drawDoughnut(ctx2, W, H) {
+                    const cx = W / 2,
+                        cy = H / 2,
+                        r = Math.min(W, H) * 0.26;
+                    ctx2.clearRect(0, 0, W, H);
+                    const segs = [{ l: '6-8月', v: 62, c: '#ff5e5b' }, { l: '5月+9月', v: 18, c: '#f4a261' }, { l: '4月+10月',
+                            v: 10, c: '#e76f51' }, { l: '其他', v: 10, c: '#2a9d8f' }];
+                    let start = -Math.PI / 2;
+                    segs.forEach(s => {
+                        const slice = (s.v / 100) * Math.PI * 2;
+                        ctx2.beginPath();
+                        ctx2.moveTo(cx, cy);
+                        ctx2.arc(cx, cy, r, start, start + slice);
+                        ctx2.closePath();
+                        ctx2.fillStyle = s.c;
+                        ctx2.fill();
+                        ctx2.strokeStyle = '#0d2137';
+                        ctx2.lineWidth = 2;
+                        ctx2.stroke();
+                        const mid = start + slice / 2;
+                        ctx2.fillStyle = '#fff';
+                        ctx2.font = '8px Inter';
+                        ctx2.textAlign = 'center';
+                        ctx2.fillText(s.l, cx + Math.cos(mid) * r * 0.7, cy + Math.sin(mid) * r * 0.7);
+                        ctx2.fillText(s.v + '%', cx + Math.cos(mid) * r * 0.7, cy + Math.sin(mid) * r * 0.7 + 12);
+                        start += slice;
+                    });
+                    ctx2.beginPath();
+                    ctx2.arc(cx, cy, r * 0.45, 0, Math.PI * 2);
+                    ctx2.fillStyle = '#0d2137';
+                    ctx2.fill();
+                    ctx2.fillStyle = '#fff';
+                    ctx2.font = 'bold 14px Inter';
+                    ctx2.fillText('62%', cx, cy + 3);
+                    ctx2.font = '8px Inter';
+                    ctx2.fillText('暑期占比', cx, cy + 18);
+                }
+
+                function drawPie(ctx2, W, H) {
+                    const cx = W / 2,
+                        cy = H / 2,
+                        r = Math.min(W, H) * 0.26;
+                    ctx2.clearRect(0, 0, W, H);
+                    const segs = [{ l: '河流', v: 38, c: '#ff5e5b' }, { l: '湖泊水库', v: 28, c: '#e76f51' }, { l: '池塘',
+                            v: 18, c: '#f4a261' }, { l: '游泳池', v: 10, c: '#2a9d8f' }, { l: '其他', v: 6,
+                            c: '#6c5ce7' }];
+                    let start = -Math.PI / 2;
+                    segs.forEach(s => {
+                        const slice = (s.v / 100) * Math.PI * 2;
+                        ctx2.beginPath();
+                        ctx2.moveTo(cx, cy);
+                        ctx2.arc(cx, cy, r, start, start + slice);
+                        ctx2.closePath();
+                        ctx2.fillStyle = s.c;
+                        ctx2.fill();
+                        ctx2.strokeStyle = '#0d2137';
+                        ctx2.lineWidth = 2;
+                        ctx2.stroke();
+                        const mid = start + slice / 2;
+                        ctx2.fillStyle = '#fff';
+                        ctx2.font = '7px Inter';
+                        ctx2.textAlign = 'center';
+                        ctx2.fillText(s.l, cx + Math.cos(mid) * r * 0.6, cy + Math.sin(mid) * r * 0.6);
+                        ctx2.fillText(s.v + '%', cx + Math.cos(mid) * r * 0.6, cy + Math.sin(mid) * r * 0.6 + 11);
+                        start += slice;
+                    });
+                }
+
+                function renderCharts() {
+                    setupCanvas('barChart', drawBars);
+                    setupCanvas('doughnutChart', drawDoughnut);
+                    setupCanvas('pieChart', drawPie);
+                }
+                renderCharts();
+                window.addEventListener('resize', renderCharts);
+
+                // ===== 动态折线图 =====
+                const ctxLine = document.getElementById('dynamicLineChart').getContext('2d');
+                const labels = ['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'];
+                const datasets = {
+                    all: {
+                        label: '全国（全人群）',
+                        data: [5.8, 5.7, 5.9, 5.6, 5.4, 5.2, 5.0, 4.8],
+                        borderColor: '#ff5e5b',
+                        backgroundColor: 'rgba(255,94,91,0.2)',
+                        fill: true,
+                    },
+                    child: {
+                        label: '0-17岁儿童',
+                        data: [5.2, 5.1, 5.3, 5.0, 4.8, 4.6, 4.4, 4.2],
+                        borderColor: '#f4a261',
+                        backgroundColor: 'rgba(244,162,97,0.2)',
+                        fill: true,
+                    },
+                    hubei: {
+                        label: '湖北省',
+                        data: [0.45, 0.44, 0.46, 0.43, 0.41, 0.39, 0.37, 0.35],
+                        borderColor: '#48cae4',
+                        backgroundColor: 'rgba(72,202,228,0.2)',
+                        fill: true,
+                    }
+                };
+
+                let currentDataset = 'all';
+                let chart = new Chart(ctxLine, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ ...datasets.all, data: datasets.all.data.slice() }] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { labels: { color: '#e0e6ed', font: { size: 10 } } } },
+                        scales: {
+                            x: { ticks: { color: '#a0b4c8', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            y: { ticks: { color: '#a0b4c8', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.05)' },
+                                title: { display: true, text: '死亡人数（万人）', color: '#a0b4c8', font: { size: 9 } } }
+                        }
+                    }
+                });
+
+                let animationInterval = null;
+                let currentIndex = 1;
+                let isPlaying = false;
+
+                function resetChart() {
+                    if (animationInterval) { clearInterval(animationInterval);
+                        animationInterval = null;
+                        isPlaying = false;
+                        document.getElementById('playBtn').textContent = '▶ 播放'; }
+                    currentIndex = 1;
+                    const data = datasets[currentDataset].data.slice();
+                    chart.data.datasets[0].data = data.map((v, i) => i === 0 ? v : null);
+                    chart.update();
+                }
+
+                function playStep() {
+                    const data = datasets[currentDataset].data;
+                    if (currentIndex >= data.length) {
+                        clearInterval(animationInterval);
+                        animationInterval = null;
+                        isPlaying = false;
+                        document.getElementById('playBtn').textContent = '▶ 播放';
+                        return;
+                    }
+                    chart.data.datasets[0].data = data.map((v, i) => i <= currentIndex ? v : null);
+                    chart.update();
+                    currentIndex++;
+                }
+
+                function startPlay() {
+                    if (animationInterval) {
+                        clearInterval(animationInterval);
+                        animationInterval = null;
+                        isPlaying = false;
+                        document.getElementById('playBtn').textContent = '▶ 播放';
+                        return;
+                    }
+                    if (currentIndex >= datasets[currentDataset].data.length) {
+                        resetChart();
+                        setTimeout(() => { if (isChartVisible()) startPlay(); }, 100);
+                        return;
+                    }
+                    document.getElementById('playBtn').textContent = '⏸ 暂停';
+                    isPlaying = true;
+                    animationInterval = setInterval(playStep, 600);
+                }
+
+                function switchDataset(dsKey) {
+                    if (animationInterval) { clearInterval(animationInterval);
+                        animationInterval = null;
+                        isPlaying = false;
+                        document.getElementById('playBtn').textContent = '▶ 播放'; }
+                    currentDataset = dsKey;
+                    const data = datasets[dsKey].data.slice();
+                    chart.data.datasets[0].label = datasets[dsKey].label;
+                    chart.data.datasets[0].data = data.map((v, i) => i === 0 ? v : null);
+                    chart.data.datasets[0].borderColor = datasets[dsKey].borderColor;
+                    chart.data.datasets[0].backgroundColor = datasets[dsKey].backgroundColor;
+                    chart.update();
+                    currentIndex = 1;
+                    document.querySelectorAll('.chart-controls button[data-ds]').forEach(btn => btn.classList.remove(
+                    'active'));
+                    document.querySelector(`.chart-controls button[data-ds="${dsKey}"]`).classList.add('active');
+                    if (isChartVisible()) setTimeout(startPlay, 200);
+                }
+
+                function isChartVisible() {
+                    const container = document.getElementById('lineChartContainer');
+                    if (!container) return false;
+                    const rect = container.getBoundingClientRect();
+                    return rect.top < window.innerHeight - 100 && rect.bottom > 100;
+                }
+
+                const lineObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            if (!isPlaying && !animationInterval) {
+                                if (currentIndex >= datasets[currentDataset].data.length) resetChart();
+                                startPlay();
+                            }
+                        } else {
+                            if (animationInterval) {
+                                clearInterval(animationInterval);
+                                animationInterval = null;
+                                isPlaying = false;
+                                document.getElementById('playBtn').textContent = '▶ 播放';
+                            }
+                        }
+                    });
+                }, { threshold: 0.3 });
+                const lineContainer = document.getElementById('lineChartContainer');
+                if (lineContainer) lineObserver.observe(lineContainer);
+
+                document.getElementById('playBtn').addEventListener('click', startPlay);
+                document.getElementById('resetBtn').addEventListener('click', resetChart);
+                document.querySelectorAll('.chart-controls button[data-ds]').forEach(btn => {
+                    btn.addEventListener('click', function() { switchDataset(this.dataset.ds); });
+                });
+
+                resetChart();
+                setTimeout(() => { if (isChartVisible()) startPlay(); }, 500);
+
+                // ===== 选择题交互 =====
+                document.querySelectorAll('.quiz-card.choice').forEach(quizCard => {
+                    const options = quizCard.querySelectorAll('.quiz-option');
+                    const feedback = quizCard.querySelector('.quiz-feedback');
+                    const correctAnswer = quizCard.dataset.correct;
+
+                    options.forEach(opt => {
+                        opt.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            if (this.classList.contains('disabled')) return;
+                            const selected = this.dataset.option;
+                            const isCorrect = selected === correctAnswer;
+                            options.forEach(o => o.classList.add('disabled'));
+                            options.forEach(o => { if (o.dataset.option === correctAnswer) o.classList.add(
+                                    'correct'); });
+                            if (!isCorrect) this.classList.add('wrong');
+                            feedback.className = 'quiz-feedback show';
+                            if (isCorrect) {
+                                feedback.classList.add('correct');
+                                let msg = '';
+                                if (correctAnswer === 'B') msg =
+                                    '✅ 回答正确！野外水库环境复杂，缺乏救生设施，且青少年容易高估自身能力。';
+                                else if (correctAnswer === 'C') msg =
+                                    '✅ 回答正确！直接跳入水中施救非常危险，正确做法是"叫、伸、抛"。';
+                                else if (correctAnswer === 'A') msg =
+                                    '✅ 回答正确！正规游泳馆有专业救生员和完善的安全设施，是相对最安全的选择。';
+                                else if (correctAnswer === 'B') msg =
+                                    '✅ 回答正确！仰漂是溺水时最节省体力的自救方式，能最大程度延长等待救援的时间。';
+                                else msg = '✅ 回答正确！';
+                                feedback.innerHTML = msg;
+                            } else {
+                                feedback.classList.add('wrong');
+                                let correctText = options.querySelector(`[data-option="${correctAnswer}"]`)
+                                    .textContent;
+                                feedback.innerHTML =
+                                    `❌ 回答错误。正确答案是 <strong>${correctAnswer}</strong>。${correctText}`;
+                            }
+                        });
+                        opt.addEventListener('touchstart', function(e) { e.preventDefault();
+                            this.click(); });
+                    });
+                });
+
+                // ===== 底部轮播 =====
+                const carousel = document.getElementById('posterCarousel');
+                let carouselInterval = null;
+                let isHovering = false;
+
+                function scrollToNext() {
+                    if (isHovering) return;
+                    const scrollWidth = carousel.scrollWidth;
+                    const clientWidth = carousel.clientWidth;
+                    const currentScroll = carousel.scrollLeft;
+                    if (currentScroll + clientWidth >= scrollWidth - 2) {
+                        carousel.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        carousel.scrollBy({ left: clientWidth, behavior: 'smooth' });
+                    }
+                }
+
+                function startCarousel() {
+                    if (carouselInterval) clearInterval(carouselInterval);
+                    carouselInterval = setInterval(scrollToNext, 4200);
+                }
+
+                function stopCarousel() {
+                    if (carouselInterval) { clearInterval(carouselInterval);
+                        carouselInterval = null; }
+                }
+                carousel.addEventListener('mouseenter', () => { isHovering = true;
+                    stopCarousel(); });
+                carousel.addEventListener('mouseleave', () => { isHovering = false;
+                    startCarousel(); });
+                carousel.addEventListener('touchstart', () => { isHovering = true;
+                    stopCarousel(); });
+                carousel.addEventListener('touchend', () => { isHovering = false;
+                    startCarousel(); });
+                startCarousel();
+
+                // ===== 返回顶部 =====
+                const backToTop = document.getElementById('backToTop');
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 500) backToTop.classList.add('visible');
+                    else backToTop.classList.remove('visible');
+                });
+
+                // ===== 滚动进入动画 =====
+                const revealObs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) {
+                            e.target.style.opacity = '1';
+                            e.target.style.transform = 'translateY(0)';
+                            revealObs.unobserve(e.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+                document.querySelectorAll(
+                    '.glass-card, .timeline-card, .poster-slot, .map-wrapper, .chart-container, .reason-card'
+                ).forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'all 0.7s cubic-bezier(0.4,0,0.2,1)';
+                    revealObs.observe(el);
+                });
+                document.querySelectorAll('.hero-stat').forEach((el, i) => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(15px)';
+                    el.style.transition = 'all 0.5s';
+                    setTimeout(() => { el.style.opacity = '1';
+                        el.style.transform = 'translateY(0)'; }, 300 + i * 100);
+                });
+
+                // ===== 导航栏阴影 =====
+                const nav = document.getElementById('topNav');
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 40) {
+                        nav.style.boxShadow = '0 16px 48px rgba(0,0,0,0.5)';
+                        nav.style.background = 'rgba(13,33,55,0.9)';
+                    } else {
+                        nav.style.boxShadow = '0 8px 32px rgba(0,0,0,0.35)';
+                        nav.style.background = 'rgba(13,33,55,0.8)';
+                    }
+                });
+            })();
+        </script>
+    </body>
+    </html>
